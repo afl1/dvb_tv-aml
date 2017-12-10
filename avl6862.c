@@ -961,34 +961,18 @@ static int avl6862_set_dvbmode(struct dvb_frontend *fe,
 	int ret;
 	u32 reg;
 
-	/* these modes use the same fw / config *
+	/* these modes use the same fw / config */
 	if (delsys == SYS_DVBS2)
 		delsys = SYS_DVBS;
 	else if (delsys == SYS_DVBT2)
 		delsys = SYS_DVBT;
 
-	* already in desired mode */
+	/* already in desired mode */
 	if (priv->delivery_system == delsys)
 		return 0;
 
 	dbg_avl("initing demod for delsys=%d", delsys);
 
-	switch (priv->delivery_system) {
-	case SYS_DVBS:
-		if (delsys == SYS_DVBS2) return 0;
-		break;
-	case SYS_DVBS2:
-		if (delsys == SYS_DVBS) return 0;
-		break;
-	case SYS_DVBT:
-		if (delsys == SYS_DVBT2) return 0;
-		break;
-	case SYS_DVBT2:
-		if (delsys == SYS_DVBT) return 0;
-		break;
-	default:
-		break;
-	}
 	priv->delivery_system = delsys;
 
 	ret = avl6862_load_firmware(priv);
@@ -1516,15 +1500,9 @@ static int avl6862_set_frontend(struct dvb_frontend *fe)
 	ret = avl6862_RD_REG32(priv, 0x200 + rs_current_active_mode_iaddr_offset, &demod_mode);
 	if (ret)
 		return ret;
-/*
-	if (c->delivery_system == SYS_DVBC_ANNEX_A && c->symbol_rate < 6000000 ) {
-		c->delivery_system = SYS_DVBC_ANNEX_B;
-		c->bandwidth_hz = 6000000;
-	}
 
 	/* setup tuner */
-//	if (memcmp(&_last_dtv, c, sizeof(struct dtv_frontend_properties))) {
-	    if (fe->ops.tuner_ops.set_params) {
+	if (fe->ops.tuner_ops.set_params) {
 		if (fe->ops.i2c_gate_ctrl)
 			fe->ops.i2c_gate_ctrl(fe, 1);
 		ret = fe->ops.tuner_ops.set_params(fe);
@@ -1533,13 +1511,13 @@ static int avl6862_set_frontend(struct dvb_frontend *fe)
 
 		if (ret)
 			return ret;
-	    }
-//	}
-//	memcpy(&_last_dtv, c, sizeof(struct dtv_frontend_properties));
+	}
 
 	switch (c->delivery_system) {
 	case SYS_DVBT:
 	case SYS_DVBT2:
+		if (demod_mode != AVL_DVBTX)
+			ret = avl6862_set_dvbmode(fe, c->delivery_system);
 		if (demod_mode != AVL_DVBTX) {
 			dev_err(&priv->i2c->dev, "%s: failed to enter DVBTx mode",
 				KBUILD_MODNAME);
@@ -1549,6 +1527,8 @@ static int avl6862_set_frontend(struct dvb_frontend *fe)
 		ret = avl6862_set_dvbt(fe);
 		break;
 	case SYS_DVBC_ANNEX_A:
+		if (demod_mode != AVL_DVBC)
+			ret = avl6862_set_dvbmode(fe, c->delivery_system);
 		if (demod_mode != AVL_DVBC) {
 			dev_err(&priv->i2c->dev, "%s: failed to enter DVBC mode",
 				KBUILD_MODNAME);
@@ -1558,6 +1538,8 @@ static int avl6862_set_frontend(struct dvb_frontend *fe)
 		ret = avl6862_set_dvbc(fe);
 		break;
 	case SYS_DVBC_ANNEX_B:
+		if (demod_mode != AVL_DVBC)
+			ret = avl6862_set_dvbmode(fe, c->delivery_system);
 		if (demod_mode != AVL_DVBC) {
 			dev_err(&priv->i2c->dev, "%s: failed to enter DVBC annex B mode",
 				KBUILD_MODNAME);
@@ -1568,6 +1550,8 @@ static int avl6862_set_frontend(struct dvb_frontend *fe)
 		break;
 	case SYS_DVBS:
 	case SYS_DVBS2:
+		if (demod_mode != AVL_DVBSX)
+			ret = avl6862_set_dvbmode(fe, c->delivery_system);
 		if (demod_mode != AVL_DVBSX) {
 			dev_err(&priv->i2c->dev, "%s: failed to enter DVBSx mode",
 				KBUILD_MODNAME);
@@ -1653,9 +1637,9 @@ static struct dvb_frontend_ops avl6862_ops = {
 	.delsys = {SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A, SYS_DVBC_ANNEX_B, SYS_DVBS, SYS_DVBS2},
 	.info = {
 		.name			= "Availink avl6862",
-		.frequency_min		= 174000000,
+		.frequency_min		= 950000,
 		.frequency_max		= 862000000,
-		.frequency_stepsize	= 62500,
+		.frequency_stepsize	= 0,
 		.frequency_tolerance	= 0,
 		.symbol_rate_min	= 1000000,
 		.symbol_rate_max	= 45000000,
@@ -1700,7 +1684,7 @@ static struct dvb_frontend_ops avl6862_ops = {
 	.get_frontend_algo		= avl6862fe_algo,
 	.tune				= avl6862_tune,
 
-	.set_property			= avl6862_set_property,
+//	.set_property			= avl6862_set_property,
 	.set_frontend			= avl6862_set_frontend,
 };
 
@@ -1762,3 +1746,5 @@ EXPORT_SYMBOL_GPL(avl6862_attach);
 MODULE_DESCRIPTION("Availink avl68xx DVB demodulator driver");
 MODULE_AUTHOR("Luis Alves (ljalvs@gmail.com)");
 MODULE_LICENSE("GPL");
+
+
