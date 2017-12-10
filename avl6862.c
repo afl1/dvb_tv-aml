@@ -1247,6 +1247,10 @@ static int avl6862_diseqc(struct dvb_frontend *fe,
 	struct avl6862_priv *priv = fe->demodulator_priv;
 	int ret;
 
+	ret = avl6862_set_dvbmode(fe,SYS_DVBS);
+	if (ret)
+	  return ret;
+
 	return AVL_SX_DiseqcSendCmd(priv,cmd->msg,cmd->msg_len);
 }
 
@@ -1255,6 +1259,10 @@ static int avl6862_burst(struct dvb_frontend *fe, enum fe_sec_mini_cmd burst)
 	struct avl6862_priv *priv = fe->demodulator_priv;
 	struct AVL_Diseqc_TxStatus TxStatus;
 	int ret;
+
+	ret = avl6862_set_dvbmode(fe,SYS_DVBS);
+	if (ret)
+	  return ret;
 
 	ret = AVL_Demod_DVBSx_Diseqc_SendTone(priv,burst == SEC_MINI_A ? 1 : 0, 1);
 
@@ -1266,6 +1274,10 @@ static int avl6862_set_tone(struct dvb_frontend* fe, enum fe_sec_tone_mode tone)
 	struct avl6862_priv *priv = fe->demodulator_priv;
 	int ret;
 	u32 reg;
+
+	ret = avl6862_set_dvbmode(fe,SYS_DVBS);
+	if (ret)
+	  return ret;
 
 	dbg_avl("tone: %d", tone);
 	ret = avl6862_RD_REG32(priv, 0x16c000 + hw_diseqc_tx_cntrl_offset, &reg);
@@ -1292,6 +1304,10 @@ static int avl6862_set_voltage(struct dvb_frontend* fe, enum fe_sec_voltage volt
 	struct avl6862_priv *priv = fe->demodulator_priv;
 	u32 pwr, vol;
 	int ret;
+
+	ret = avl6862_set_dvbmode(fe,SYS_DVBS);
+	if (ret)
+	  return ret;
 
 	dbg_avl("volt: %d", voltage);
 
@@ -1484,9 +1500,6 @@ static int avl6862fe_algo(struct dvb_frontend *fe)
 	return DVBFE_ALGO_HW;
 }
 			
-//static  struct dtv_frontend_properties _last_dtv;
-
-
 
 static int avl6862_set_frontend(struct dvb_frontend *fe)
 {
