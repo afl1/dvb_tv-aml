@@ -262,7 +262,12 @@ int R848_Convert(int InvertNum)
 int r848_i2c_readreg(struct r848_priv *priv, u8 *data, u16 size)
 {
 	int ret;
-	struct i2c_msg msg[1] = {
+	struct i2c_msg msg[2] = {
+		{ 	.addr = priv->cfg->i2c_address,
+                        .flags = 0,
+			.buf = 0,
+			.len = 1 
+                },
 		{
 			.addr = priv->cfg->i2c_address,
 			.flags = I2C_M_RD,
@@ -271,7 +276,7 @@ int r848_i2c_readreg(struct r848_priv *priv, u8 *data, u16 size)
 		}
 	};
 
-	ret = i2c_transfer(priv->i2c, msg, 1);
+	ret = i2c_transfer(priv->i2c, msg, 2);
 
 	if (ret == 1) {
 		ret = 0;

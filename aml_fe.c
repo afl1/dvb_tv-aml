@@ -117,7 +117,7 @@ static int avl6862_fe_init(struct aml_dvb *advb, struct platform_device *pdev, s
 		ret = -ENOMEM;
 		goto err_resource;
 	}
-	pr_dbg("i2c_adap_id=%d\n", &i2c_adap_id);
+	pr_dbg("i2c_adap_id=%d\n", i2c_adap_id);
 	desc = of_get_named_gpiod_flags(pdev->dev.of_node, "dtv_demod0_reset_gpio-gpios", 0, NULL);
 	gpio_reset = desc_to_gpio(desc);
 	pr_dbg("gpio_reset=%d\n", gpio_reset);
