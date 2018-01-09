@@ -44,14 +44,23 @@ module_param(debug_avl, int, 0644);
 static int avl6862_i2c_rd(struct avl6862_priv *priv, u8 *buf, int len)
 {
 	int ret;
-	struct i2c_msg msg = {
+	struct i2c_msg msg[] = {
+		{
+			.addr = priv->config->demod_address,
+			.flags = 0,
+			.len = 1,
+			.buf = 0,
+		},
+		{
 			.addr= priv->config->demod_address,
 			.flags= I2C_M_RD,
 			.len  = len,
 			.buf  = buf,
+		}
 	};
-	ret = i2c_transfer(priv->i2c, &msg, 1);
-	if (ret == 1) {
+
+	ret = i2c_transfer(priv->i2c, msg, 2);
+	if (ret == 2) {
 		ret = 0;
 	} else {
 		dev_warn(&priv->i2c->dev, "%s: i2c rd failed=%d " \
